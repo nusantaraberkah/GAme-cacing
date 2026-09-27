@@ -1,0 +1,6 @@
+{
+  "name": "Game Cacing Multiplayer Online",
+  "description": "Game cacing multiplayer online seru dengan avatar foto wajah pada kepala cacing, kustomisasi skin, leaderboard real-time, dan arena dinamis.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
