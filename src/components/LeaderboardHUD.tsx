@@ -31,6 +31,9 @@ export const LeaderboardHUD: React.FC<LeaderboardHUDProps> = ({
   onToggleMute,
   onOpenRoomModal,
 }) => {
+  // Live leaderboard is hidden by default per user request, can be toggled if desired
+  const [showLiveLeaderboard, setShowLiveLeaderboard] = React.useState(false);
+
   // Expansion percentage
   const expansionPct = Math.round(((arenaRadius - baseArenaRadius) / baseArenaRadius) * 100);
 
@@ -91,14 +94,31 @@ export const LeaderboardHUD: React.FC<LeaderboardHUDProps> = ({
         </div>
       </div>
 
-      {/* Top Right: Live Leaderboard */}
+      {/* Top Right: Controls & Optional Leaderboard Toggle */}
       <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2 select-none">
         {/* Top Controls Row */}
         <div className="flex items-center gap-2">
+          {/* Toggle Live Leaderboard Button (Hidden by default) */}
+          <button
+            type="button"
+            onClick={() => setShowLiveLeaderboard((prev) => !prev)}
+            className={`pointer-events-auto border px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-lg transition-all cursor-pointer ${
+              showLiveLeaderboard
+                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                : 'bg-slate-900/90 hover:bg-slate-800 border-slate-700/80 text-slate-300 hover:text-white'
+            }`}
+            title={showLiveLeaderboard ? 'Sembunyikan Papan Peringkat Live' : 'Buka Papan Peringkat Live'}
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-[11px] font-medium hidden sm:inline">
+              {showLiveLeaderboard ? 'Tutup Peringkat' : 'Peringkat'}
+            </span>
+          </button>
+
           <button
             type="button"
             onClick={onOpenRoomModal}
-            className="pointer-events-auto bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-200 flex items-center gap-1.5 shadow-lg transition-all"
+            className="pointer-events-auto bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-200 flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
             title="Main bersama teman / Salin Kode Room"
           >
             <Share2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -107,94 +127,96 @@ export const LeaderboardHUD: React.FC<LeaderboardHUDProps> = ({
           <button
             type="button"
             onClick={onToggleMute}
-            className="pointer-events-auto bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 p-2 rounded-xl text-slate-300 hover:text-white shadow-lg transition-all"
+            className="pointer-events-auto bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 p-2 rounded-xl text-slate-300 hover:text-white shadow-lg transition-all cursor-pointer"
             title={isMuted ? 'Nyalakan Suara' : 'Matikan Suara'}
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
           </button>
         </div>
 
-        {/* Leaderboard Table Card */}
-        <div className="w-64 sm:w-72 bg-slate-950/85 backdrop-blur-md rounded-2xl border border-slate-800 shadow-2xl p-3">
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
-              <Trophy className="w-4 h-4" />
-              <span>Papan Peringkat Live</span>
+        {/* Leaderboard Table Card - Only shown when explicitly toggled, otherwise hidden during gameplay */}
+        {showLiveLeaderboard && (
+          <div className="w-64 sm:w-72 bg-slate-950/90 backdrop-blur-md rounded-2xl border border-slate-800 shadow-2xl p-3 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+                <Trophy className="w-4 h-4" />
+                <span>Papan Peringkat Live</span>
+              </div>
+              <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+                <Users className="w-3.5 h-3.5" />
+                <span>{totalPlayers} Cacing</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
-              <Users className="w-3.5 h-3.5" />
-              <span>{totalPlayers} Cacing</span>
-            </div>
-          </div>
 
-          <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
-            {leaderboard.slice(0, 10).map((entry, idx) => {
-              const isFirst = idx === 0;
-              const isTop3 = idx < 3;
-              return (
-                <div
-                  key={entry.id}
-                  className={`flex items-center justify-between px-2 py-1 rounded-xl text-xs transition-all ${
-                    entry.isCurrentPlayer
-                      ? 'bg-emerald-500/25 border border-emerald-500/50 shadow-sm'
-                      : isFirst
-                      ? 'bg-amber-500/15 border border-amber-500/30'
-                      : 'hover:bg-slate-900/60'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className={`font-mono font-bold text-[11px] w-4 text-center ${
-                        idx === 0
-                          ? 'text-amber-400'
-                          : idx === 1
-                          ? 'text-slate-300'
-                          : idx === 2
-                          ? 'text-amber-600'
-                          : 'text-slate-500'
-                      }`}
-                    >
-                      {idx + 1}
-                    </span>
+            <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
+              {leaderboard.slice(0, 10).map((entry, idx) => {
+                const isFirst = idx === 0;
+                const isTop3 = idx < 3;
+                return (
+                  <div
+                    key={entry.id}
+                    className={`flex items-center justify-between px-2 py-1 rounded-xl text-xs transition-all ${
+                      entry.isCurrentPlayer
+                        ? 'bg-emerald-500/25 border border-emerald-500/50 shadow-sm'
+                        : isFirst
+                        ? 'bg-amber-500/15 border border-amber-500/30'
+                        : 'hover:bg-slate-900/60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className={`font-mono font-bold text-[11px] w-4 text-center ${
+                          idx === 0
+                            ? 'text-amber-400'
+                            : idx === 1
+                            ? 'text-slate-300'
+                            : idx === 2
+                            ? 'text-amber-600'
+                            : 'text-slate-500'
+                        }`}
+                      >
+                        {idx + 1}
+                      </span>
 
-                    {/* Face avatar */}
-                    <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 border border-slate-700 bg-slate-900">
-                      <img
-                        src={entry.avatarUrl}
-                        alt={entry.name}
-                        className="w-full h-full object-cover"
-                      />
+                      {/* Face avatar */}
+                      <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 border border-slate-700 bg-slate-900">
+                        <img
+                          src={entry.avatarUrl}
+                          alt={entry.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      <span
+                        className={`truncate font-medium text-[11px] ${
+                          entry.isCurrentPlayer
+                            ? 'text-emerald-300 font-bold'
+                            : isTop3
+                            ? 'text-slate-100 font-semibold'
+                            : 'text-slate-300'
+                        }`}
+                      >
+                        {entry.name}
+                        {entry.isCurrentPlayer && ' (Anda)'}
+                      </span>
                     </div>
 
-                    <span
-                      className={`truncate font-medium text-[11px] ${
-                        entry.isCurrentPlayer
-                          ? 'text-emerald-300 font-bold'
-                          : isTop3
-                          ? 'text-slate-100 font-semibold'
-                          : 'text-slate-300'
-                      }`}
-                    >
-                      {entry.name}
-                      {entry.isCurrentPlayer && ' (Anda)'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0 pl-1">
-                    {entry.kills > 0 && (
-                      <span className="text-[10px] text-amber-400/90 font-mono">
-                        ⚡{entry.kills}
+                    <div className="flex items-center gap-1.5 shrink-0 pl-1">
+                      {entry.kills > 0 && (
+                        <span className="text-[10px] text-amber-400/90 font-mono">
+                          ⚡{entry.kills}
+                        </span>
+                      )}
+                      <span className="font-mono font-bold text-[11px] text-slate-200">
+                        {entry.score.toLocaleString()}
                       </span>
-                    )}
-                    <span className="font-mono font-bold text-[11px] text-slate-200">
-                      {entry.score.toLocaleString()}
-                    </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );

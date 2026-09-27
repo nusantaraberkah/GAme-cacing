@@ -443,11 +443,12 @@ export default function App() {
         </>
       )}
 
-      {/* 3. GAME OVER MODAL (Rangking Terbesar & Statistik Lengkap) */}
+      {/* 3. GAME OVER MODAL (Rangking Terbesar & Statistik Lengkap + Papan Peringkat) */}
       {gameOverStats && (
         <GameOverModal
           stats={gameOverStats}
           bestRecord={bestRecord}
+          leaderboard={leaderboard}
           onRespawn={handleRespawn}
           onOpenCustomize={handleOpenCustomize}
           roomCode={roomCode}
